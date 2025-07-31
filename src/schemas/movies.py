@@ -1,14 +1,12 @@
-# src/schemas/movies.py
-
-from typing import List, Optional
-from pydantic import BaseModel
+from typing import Optional, List
+from pydantic import BaseModel, field_validator
 from datetime import date
 
 
 class MovieDetailResponseSchema(BaseModel):
     id: int
     name: str
-    date: date
+    date: Optional[str]
     score: float
     genre: str
     overview: str
@@ -16,12 +14,24 @@ class MovieDetailResponseSchema(BaseModel):
     orig_title: str
     status: str
     orig_lang: str
-    budget: int
-    revenue: int
+    budget: Optional[int]
+    revenue: Optional[int]
     country: str
 
+    @field_validator('date', mode='before')
+    def date_to_str(cls, v):
+        if isinstance(v, date):
+            return v.isoformat()
+        return v
+
+    @field_validator('revenue', 'budget', mode='before')
+    def float_to_int(cls, v):
+        if isinstance(v, float):
+            return int(v)
+        return v
+
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class MovieListResponseSchema(BaseModel):

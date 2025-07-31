@@ -1,12 +1,10 @@
-# src/routes/movies.py
-
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from typing import Optional
-from src.database.session import get_db
-from src.database.models import MovieModel
-from src.schemas.movies import MovieDetailResponseSchema, MovieListResponseSchema
+from sqlalchemy import func
+from database.session import get_db
+from database.models import MovieModel
+from schemas.movies import MovieDetailResponseSchema, MovieListResponseSchema
 
 router = APIRouter()
 
@@ -17,8 +15,8 @@ async def get_movies(
     per_page: int = Query(10, ge=1, le=20),
     db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(select(MovieModel))
-    total_items = len(result.scalars().all())
+    count_result = await db.execute(select(func.count()).select_from(MovieModel))
+    total_items = count_result.scalar_one()
 
     if total_items == 0:
         raise HTTPException(status_code=404, detail="No movies found.")
